@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api/apiConfig';
 
 const Dashboard = () => {
   const [events, setEvents] = useState([]);
@@ -45,9 +46,9 @@ const Dashboard = () => {
     setLoading(true);
     try {
       const [eventsRes, userRes, settingsRes] = await Promise.all([
-        axios.get('http://localhost:5048/api/events').catch(() => ({ data: [] })),
-        axios.get(`http://localhost:5048/api/users/${userId}`).catch(() => ({ data: null })),
-        axios.get('http://localhost:5048/api/settings').catch(() => ({ data: { lateCancelHours: 3, maxViolations: 3 } }))
+        axios.get(`${API_BASE_URL}/events`).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE_URL}/users/${userId}`).catch(() => ({ data: null })),
+        axios.get(`${API_BASE_URL}/settings`).catch(() => ({ data: { lateCancelHours: 3, maxViolations: 3 } }))
       ]);
       setEvents(eventsRes.data || []);
       setUserData(userRes.data);
@@ -87,7 +88,7 @@ const Dashboard = () => {
     try {
       const finalGuestNames = slotsRequested > 1 ? guestNames.filter(n => n.trim() !== '').join(', ') : null;
 
-      await axios.post('http://localhost:5048/api/bookings', {
+      await axios.post(`${API_BASE_URL}/bookings`, {
         userId: currentUser.userId || currentUser.id,
         eventId: selectedEvent.eventId,
         slotsRequested: parseInt(slotsRequested),
@@ -104,7 +105,7 @@ const Dashboard = () => {
   const submitCancel = async () => {
     setCancelLoading(true);
     try {
-      await axios.post('http://localhost:5048/api/bookings/cancel', { reservationId: reservationToCancel.reservation.reservationId, userId: currentUser.userId || currentUser.id, slotsToCancel: parseInt(cancelSlotsCount) });
+      await axios.post(`${API_BASE_URL}/bookings/cancel`, { reservationId: reservationToCancel.reservation.reservationId, userId: currentUser.userId || currentUser.id, slotsToCancel: parseInt(cancelSlotsCount) });
       setIsCancelModalOpen(false);
       fetchData(currentUser.userId || currentUser.id);
     } catch (err) { alert(err.response?.data?.message || 'Failed to cancel.'); }
@@ -116,7 +117,7 @@ const Dashboard = () => {
     setPwdMsg({ type: '', text: '' });
     if (pwdData.newPassword !== pwdData.confirmPassword) return setPwdMsg({ type: 'error', text: 'New passwords do not match!' });
     try {
-      await axios.put(`http://localhost:5048/api/users/${currentUser.userId || currentUser.id}/change-password`, { oldPassword: pwdData.oldPassword, newPassword: pwdData.newPassword });
+      await axios.put(`${API_BASE_URL}/users/${currentUser.userId || currentUser.id}/change-password`, { oldPassword: pwdData.oldPassword, newPassword: pwdData.newPassword });
       setPwdMsg({ type: 'success', text: 'Password updated successfully!' });
       setPwdData({ oldPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) { setPwdMsg({ type: 'error', text: err.response?.data?.message || 'Incorrect old password.' }); }

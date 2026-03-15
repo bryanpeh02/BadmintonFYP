@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api/apiConfig';
 
 const AdminPanel = () => {
     const [users, setUsers] = useState([]);
@@ -45,9 +46,9 @@ const AdminPanel = () => {
         setLoading(true);
         try {
             const [usersRes, eventsRes, settingsRes] = await Promise.all([
-                axios.get('http://localhost:5048/api/users'),
-                axios.get('http://localhost:5048/api/events').catch(() => ({ data: [] })),
-                axios.get('http://localhost:5048/api/settings').catch(() => ({ data: { lateCancelHours: 3, maxViolations: 3 } }))
+                axios.get(`${API_BASE_URL}/users`),
+                axios.get(`${API_BASE_URL}/events`).catch(() => ({ data: [] })),
+                axios.get(`${API_BASE_URL}/settings`).catch(() => ({ data: { lateCancelHours: 3, maxViolations: 3 } }))
             ]);
             setUsers(usersRes.data);
 
@@ -84,7 +85,7 @@ const AdminPanel = () => {
         if (!broadcastMsg.trim()) return alert("Please enter a message.");
         setIsBroadcasting(true);
         try {
-            await axios.post('http://localhost:5048/api/users/broadcast', { userIds: selectedUserIds, message: broadcastMsg });
+            await axios.post(`${API_BASE_URL}/users/broadcast`, { userIds: selectedUserIds, message: broadcastMsg });
             alert(`✅ Message sent to ${selectedUserIds.length} players!`);
             setShowBroadcastModal(false);
             setBroadcastMsg('');
@@ -98,7 +99,7 @@ const AdminPanel = () => {
     const handleUpdateBooking = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://localhost:5048/api/bookings/${bookingFormData.reservationId}/admin?adminId=${currentUser?.userId || currentUser?.id}`, { slotsCount: parseInt(bookingFormData.slotsCount), status: bookingFormData.status });
+            await axios.put(`${API_BASE_URL}/bookings/${bookingFormData.reservationId}/admin?adminId=${currentUser?.userId || currentUser?.id}`, { slotsCount: parseInt(bookingFormData.slotsCount), status: bookingFormData.status });
             setShowEditBookingModal(false);
             fetchData();
         } catch (err) { alert('Error updating booking: ' + (err.response?.data?.message || err.message)); }
@@ -106,31 +107,31 @@ const AdminPanel = () => {
 
     const handleRemoveBooking = async (reservationId, userName) => {
         if (!window.confirm(`FORCE REMOVE ${userName} from this event?`)) return;
-        try { await axios.delete(`http://localhost:5048/api/bookings/${reservationId}/admin?adminId=${currentUser?.userId || currentUser?.id}`); fetchData(); }
+        try { await axios.delete(`${API_BASE_URL}/bookings/${reservationId}/admin?adminId=${currentUser?.userId || currentUser?.id}`); fetchData(); }
         catch (err) { alert('Error: ' + (err.response?.data?.message || err.message)); }
     };
 
     const handleTogglePayment = async (reservationId, userName) => {
-        try { await axios.put(`http://localhost:5048/api/bookings/${reservationId}/toggle-payment?adminId=${currentUser?.userId || currentUser?.id}`, {}); fetchData(); }
+        try { await axios.put(`${API_BASE_URL}/bookings/${reservationId}/toggle-payment?adminId=${currentUser?.userId || currentUser?.id}`, {}); fetchData(); }
         catch (err) { alert('Error toggling payment: ' + (err.response?.data?.message || err.message)); }
     };
 
     const handleRemindPayment = async (reservationId, userName) => {
         if (!window.confirm(`Send WhatsApp payment reminder to ${userName}?`)) return;
         try {
-            await axios.post(`http://localhost:5048/api/bookings/${reservationId}/remind-payment?adminId=${currentUser?.userId || currentUser?.id}`, {});
+            await axios.post(`${API_BASE_URL}/bookings/${reservationId}/remind-payment?adminId=${currentUser?.userId || currentUser?.id}`, {});
             alert(`✅ WhatsApp reminder successfully sent to ${userName}!`);
         } catch (err) { alert('❌ Failed to send WhatsApp: ' + (err.response?.data?.message || err.message)); }
     };
 
     const handlePenalize = async (userId, userName) => {
         if (!window.confirm(`Penalize ${userName}?`)) return;
-        try { await axios.post(`http://localhost:5048/api/users/${userId}/penalize?adminId=${currentUser?.userId || currentUser?.id}`, {}); fetchData(); } catch (err) { alert('Error'); }
+        try { await axios.post(`${API_BASE_URL}/users/${userId}/penalize?adminId=${currentUser?.userId || currentUser?.id}`, {}); fetchData(); } catch (err) { alert('Error'); }
     };
 
     const handleUnfreeze = async (userId, userName) => {
         if (!window.confirm(`Unfreeze ${userName}?`)) return;
-        try { await axios.post(`http://localhost:5048/api/users/${userId}/unfreeze?adminId=${currentUser?.userId || currentUser?.id}`, {}); fetchData(); } catch (err) { alert('Error'); }
+        try { await axios.post(`${API_BASE_URL}/users/${userId}/unfreeze?adminId=${currentUser?.userId || currentUser?.id}`, {}); fetchData(); } catch (err) { alert('Error'); }
     };
 
     const handleSaveUser = async (e) => {
@@ -139,20 +140,20 @@ const AdminPanel = () => {
             let cleanPhone = userFormData.phone.replace(/^60/, '').replace(/^0/, '');
             const finalPhone = '60' + cleanPhone;
             const payload = { ...userFormData, phone: finalPhone };
-            if (userFormData.userId) await axios.put(`http://localhost:5048/api/users/${userFormData.userId}?adminId=${currentUser?.userId || currentUser?.id}`, payload);
-            else await axios.post(`http://localhost:5048/api/users?adminId=${currentUser?.userId || currentUser?.id}`, payload);
+            if (userFormData.userId) await axios.put(`${API_BASE_URL}/users/${userFormData.userId}?adminId=${currentUser?.userId || currentUser?.id}`, payload);
+            else await axios.post(`${API_BASE_URL}/users?adminId=${currentUser?.userId || currentUser?.id}`, payload);
             setShowUserModal(false); fetchData();
         } catch (err) { alert('Error'); }
     };
 
     const handleDeleteUser = async (userId, userName) => {
         if (!window.confirm(`Delete ${userName}?`)) return;
-        try { await axios.delete(`http://localhost:5048/api/users/${userId}?adminId=${currentUser?.userId || currentUser?.id}`); fetchData(); } catch (err) { alert('Error'); }
+        try { await axios.delete(`${API_BASE_URL}/users/${userId}?adminId=${currentUser?.userId || currentUser?.id}`); fetchData(); } catch (err) { alert('Error'); }
     };
 
     const handleResetPassword = async (userId, userName) => {
         if (!window.confirm(`Reset password for ${userName} to '123456'?`)) return;
-        try { await axios.put(`http://localhost:5048/api/users/${userId}/reset-password?adminId=${currentUser?.userId || currentUser?.id}`, {}); alert(`Password reset.`); }
+        try { await axios.put(`${API_BASE_URL}/users/${userId}/reset-password?adminId=${currentUser?.userId || currentUser?.id}`, {}); alert(`Password reset.`); }
         catch (err) { alert('Error'); }
     };
 
@@ -195,9 +196,9 @@ const AdminPanel = () => {
             };
 
             if (eventFormData.eventId) {
-                await axios.put(`http://localhost:5048/api/events/${eventFormData.eventId}?adminId=${adminId}`, payload);
+                await axios.put(`${API_BASE_URL}/events/${eventFormData.eventId}?adminId=${adminId}`, payload);
             } else {
-                await axios.post(`http://localhost:5048/api/events?adminId=${adminId}`, payload);
+                await axios.post(`${API_BASE_URL}/events?adminId=${adminId}`, payload);
             }
 
             setShowEventModal(false);
@@ -209,7 +210,7 @@ const AdminPanel = () => {
 
     const handleDeleteEvent = async (eventId, title) => {
         if (!window.confirm(`Delete event "${title}"?`)) return;
-        try { await axios.delete(`http://localhost:5048/api/events/${eventId}?adminId=${currentUser?.userId || currentUser?.id}`); fetchData(); } catch (err) { alert('Error'); }
+        try { await axios.delete(`${API_BASE_URL}/events/${eventId}?adminId=${currentUser?.userId || currentUser?.id}`); fetchData(); } catch (err) { alert('Error'); }
     };
 
     const openCreateEventModal = () => { setEventFormData({ eventId: null, title: '', description: '', eventDate: '', totalSlots: 16, status: 'Open', availableSlots: 16, preSelectedMemberIds: [] }); setShowEventModal(true); };
@@ -243,7 +244,7 @@ const AdminPanel = () => {
 
     const handleSaveSettings = async (e) => {
         e.preventDefault();
-        try { await axios.put(`http://localhost:5048/api/settings?adminId=${currentUser?.userId || currentUser?.id}`, systemSettings); alert("System Rules updated!"); fetchData(); }
+        try { await axios.put(`${API_BASE_URL}/settings?adminId=${currentUser?.userId || currentUser?.id}`, systemSettings); alert("System Rules updated!"); fetchData(); }
         catch (err) { alert('Error'); }
     };
 

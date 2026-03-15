@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../api/apiConfig';
 
 const Login = () => {
   const [phone, setPhone] = useState('');
@@ -25,7 +26,7 @@ const Login = () => {
       const cleanPhone = phone.replace(/^60/, '').replace(/^0/, '');
       const finalPhone = '60' + cleanPhone;
 
-      const response = await axios.post('http://localhost:5048/api/auth/login', {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         phone: finalPhone,
         password
       });
