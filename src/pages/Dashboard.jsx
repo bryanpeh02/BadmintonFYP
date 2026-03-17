@@ -8,6 +8,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [expandedEvents, setExpandedEvents] = useState([]);
   const [activeTab, setActiveTab] = useState('hub');
 
   const [currentUser, setCurrentUser] = useState(null);
@@ -55,6 +56,14 @@ const Dashboard = () => {
       setSystemSettings(settingsRes.data);
     } catch (err) { setError('System offline. Please check your connection.'); }
     finally { setLoading(false); }
+  };
+
+  const toggleExpand = (eventId) => {
+    setExpandedEvents(prev =>
+      prev.includes(eventId)
+        ? prev.filter(id => id !== eventId)
+        : [...prev, eventId]
+    );
   };
 
   const handleLogout = () => { localStorage.removeItem('user'); navigate('/'); };
@@ -164,7 +173,21 @@ const Dashboard = () => {
                           <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{event.title}</h3>
                           <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${isFull ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>{isFull ? 'Waitlist' : 'Open'}</span>
                         </div>
-                        <p className="text-sm text-slate-500 mb-6 line-clamp-2 h-10">{event.description || 'Join us for a great game!'}</p>
+                        <div className="mb-6">
+                          <p
+                            className={`text-sm text-slate-500 whitespace-pre-wrap break-words transition-all duration-300 ${!expandedEvents.includes(event.eventId) && (event.description?.length > 100 || event.description?.includes('\n')) ? 'line-clamp-3' : ''}`}
+                          >
+                            {event.description || 'Join us for a great game!'}
+                          </p>
+                          {(event.description?.length > 100 || event.description?.includes('\n')) && (
+                            <button
+                              onClick={() => toggleExpand(event.eventId)}
+                              className="text-blue-600 font-bold text-xs mt-1 hover:underline focus:outline-none"
+                            >
+                              {expandedEvents.includes(event.eventId) ? 'Show less' : 'Show more'}
+                            </button>
+                          )}
+                        </div>
                         <div className="space-y-3 mb-6 bg-slate-50 p-5 rounded-2xl"><div className="flex items-center text-sm font-semibold text-slate-700"><span className="w-8 text-lg text-blue-500">📅</span> {new Date(event.eventDate).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</div><div className="flex items-center text-sm font-semibold text-slate-700"><span className="w-8 text-lg text-blue-500">⏰</span> {new Date(event.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div></div>
                         <div className="space-y-2"><div className="flex justify-between text-xs font-bold"><span className="text-slate-400 uppercase tracking-wider">Capacity</span><span className={isFull ? 'text-orange-500' : 'text-blue-600'}>{event.availableSlots} / {event.totalSlots} Slots Left</span></div><div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all duration-1000 ${isFull ? 'bg-orange-400' : 'bg-blue-500'}`} style={{ width: `${fillPercentage}%` }}></div></div></div>
                       </div>
