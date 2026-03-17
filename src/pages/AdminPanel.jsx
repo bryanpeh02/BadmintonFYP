@@ -603,7 +603,15 @@ const AdminPanel = () => {
                             <div className="flex-1 space-y-4">
                                 <h3 className="text-base md:text-lg font-bold text-blue-400 border-b border-gray-700 pb-2">Event Details</h3>
                                 <div><label className="block text-gray-400 text-sm font-semibold mb-1">Title</label><input required type="text" value={eventFormData.title} onChange={(e) => setEventFormData({ ...eventFormData, title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5" /></div>
-                                <div><label className="block text-gray-400 text-sm font-semibold mb-1">Description</label><input type="text" value={eventFormData.description} onChange={(e) => setEventFormData({ ...eventFormData, description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5" /></div>
+                                <div>
+                                    <label className="block text-gray-400 text-sm font-semibold mb-1">Description</label>
+                                    <textarea
+                                        rows="4"
+                                        value={eventFormData.description}
+                                        onChange={(e) => setEventFormData({ ...eventFormData, description: e.target.value })}
+                                        className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5 resize-y min-h-[100px]"
+                                    />
+                                </div>
                                 <div><label className="block text-gray-400 text-sm font-semibold mb-1">Date & Time</label><input required type="datetime-local" value={eventFormData.eventDate} onChange={(e) => setEventFormData({ ...eventFormData, eventDate: e.target.value })} className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5" /></div>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <div className="flex-1"><label className="block text-gray-400 text-sm font-semibold mb-1">Capacity</label><input required type="number" min="1" max="100" value={eventFormData.totalSlots} onChange={(e) => setEventFormData({ ...eventFormData, totalSlots: e.target.value })} className="w-full bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-2.5" /></div>
